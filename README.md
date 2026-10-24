@@ -32,4 +32,4 @@ Use one branch per change, preserve the workflow engine's financial and authoriz
 
 [Open the public demo](https://financeflow-prototype-gules.vercel.app) · [Implementation report](docs/IMPLEMENTATION_REPORT.md)
 
-The public demo and builder work now. Real accounts, cloud storage, and AI require the service configuration in [DEPLOYMENT.md](docs/DEPLOYMENT.md).
+The visual node canvas and Supabase workspace are deployed and live-tested. Configure custom SMTP for unrestricted signup email delivery and an OpenAI key for real AI; see [DEPLOYMENT.md](docs/DEPLOYMENT.md). The original $100,000 demonstration is preserved.

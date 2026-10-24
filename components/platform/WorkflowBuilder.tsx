@@ -1,6 +1,6 @@
 'use client';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { ReactFlow, ReactFlowProvider, Background, Controls, MiniMap, Handle, Position, MarkerType, useNodesState, useReactFlow, useUpdateNodeInternals, type Node, type NodeProps, type Connection } from '@xyflow/react';
+import { ReactFlow, ReactFlowProvider, Background, Controls, MiniMap, Handle, Position, MarkerType, useNodesState, useReactFlow, useUpdateNodeInternals, useNodesInitialized, type Node, type NodeProps, type Connection } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { ArrowDown, ArrowUp, Check, CheckCheck, Copy, FileText, GitBranch, GripVertical, LayoutGrid, Play, Plus, Save, Settings2, ShieldCheck, Sparkles, Square, Trash2, X } from 'lucide-react';
 import { DEFAULT_ROLES, Stage, Template, templateSchema } from '@/lib/platform/schema';
@@ -29,6 +29,8 @@ function Builder({template,onClose,onSave}:{template:Template;onClose:()=>void;o
  const [error,setError]=useState('');const [busy,setBusy]=useState(false);const [dirty,setDirty]=useState(false);const [settings,setSettings]=useState(false);const [discard,setDiscard]=useState(false);
  const dialog=useRef<HTMLDivElement>(null);const rf=useReactFlow<FlowNode>();const stage=draft.stages.find(s=>s.id===selected);const node=nodes.find(n=>n.id===selected);const edge=edges.find(e=>e.id===selectedEdge);
  useEffect(()=>{if(selected){const n=rf.getNode(selected);if(n)requestAnimationFrame(()=>rf.setCenter(n.position.x+115,n.position.y+60,{zoom:Math.max(.85,rf.getZoom()),duration:250}));}},[selected,rf]);
+ const initialized=useNodesInitialized();const fitted=useRef(false);
+ useEffect(()=>{if(initialized&&!fitted.current){fitted.current=true;rf.fitView({padding:.2,minZoom:.25,maxZoom:1});}},[initialized,rf]);
  const close=useCallback(()=>{if(dirty)setDiscard(true);else onClose();},[dirty,onClose]);
  useEffect(()=>{const previous=document.activeElement as HTMLElement;dialog.current?.focus();return()=>previous?.focus();},[]);
  useEffect(()=>{const key=(e:KeyboardEvent)=>{if(e.key==='Escape')close();if(e.key==='Tab'){const list=dialog.current?.querySelectorAll<HTMLElement>('button:not([disabled]),input,select,textarea,[tabindex="0"]');if(!list?.length)return;const first=list[0],last=list[list.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}};document.addEventListener('keydown',key);return()=>document.removeEventListener('keydown',key);},[close]);

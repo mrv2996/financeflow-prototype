@@ -14,7 +14,7 @@ Supabase project **FinanceFlow** (`mhlcadlwrjsjelzawpwh`, eu-west-1) is active. 
 - PostgreSQL/PGlite: migration, tenant RLS, graph JSON round-trip, denied client writes/RPCs, private object visibility, atomic versions, idempotency and invitation binding.
 - Engine: legacy and graph-driven $100,000 marketing lifecycle, threshold branches, rejection/revision/cancellation, role/person checks, evidence, integer arithmetic, immutable graphs and invalid-path rejection.
 - Browser: published the marketing canvas; created a review workflow; dragged a document from the palette; configured roles/instructions; duplicated/deleted nodes; reordered steps; connected success and rejection branches; exercised zoom, validation errors and reload persistence.
-- Live Supabase through the local app: two real synthetic accounts, signup-token confirmation, password login, separate workspaces, graph persistence, transitions, rejection/resubmission, retries, stale versions, private upload/signed download, denied public files, denied cross-tenant API/database/storage access and denied finance approval by a Requester. Test records were removed.
+- Live Supabase through both the local app and the production URL: two real synthetic accounts, signup-token confirmation, password login, separate workspaces, graph persistence, transitions, rejection/resubmission, retries, stale versions, private upload/signed download, denied public files, denied cross-tenant API/database/storage access and denied finance approval by a Requester. Test records were removed.
 - Production client bundles contain neither Supabase credential value.
 
 ## Configuration remaining
@@ -29,4 +29,4 @@ No Gmail, Slack, Xero, payment or bank connector was added. Graph execution rema
 
 Existing production URL: https://financeflow-prototype-gules.vercel.app
 
-Production Supabase environment variables are saved. The updated application is ready for the existing `main`-branch Vercel deployment; public verification will be recorded after that deployment finishes.
+Deployed from `main` to the existing Vercel project. The public bootstrap endpoint reports workspace services enabled, `/prototype` returns HTTP 200, and the six live smoke-check groups pass against the production origin. The live canvas was opened in the browser; its initial viewport is fitted after all nodes have been measured. Synthetic production test records were removed.

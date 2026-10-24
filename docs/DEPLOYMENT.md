@@ -27,7 +27,7 @@ npm start
 2. Open SQL Editor and run the full contents of supabase/migrations/202610240001_financeflow.sql once. Alternatively, link the Supabase CLI to the project and run `supabase db push`.
 3. The migration creates the finance tables, tenant read policies, controlled server write functions, profile trigger, and private financeflow-documents bucket. Do not make the bucket public or add client write policies to the workflow tables.
 4. In Authentication / Providers enable email/password. Keep email confirmation enabled for shared deployments. Configure a mail provider for reliable sign-up delivery if the default email service is insufficient.
-5. In Authentication / URL Configuration, set Site URL to your Vercel production origin. Add both `http://localhost:3000/auth/confirm` and `https://YOUR-DEPLOYMENT/auth/confirm` to allowed redirect URLs. The app exchanges confirmation codes server-side. A custom confirmation email template may use `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email` for server-side verification across devices.
+5. In Authentication / URL Configuration, set Site URL to your Vercel production origin. Add both `http://localhost:3000/auth/confirm` and `https://financeflow-prototype-gules.vercel.app/auth/confirm` to allowed redirect URLs. The app exchanges confirmation codes server-side. A custom confirmation email template may use `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email` for server-side verification across devices.
 6. Register in the app, confirm email, sign in, and create a workspace. Starter templates are added. Start an instance; its data will then persist in PostgreSQL across refreshes and deployments.
 7. Invite another email through Roles & people, share the generated link yourself, and sign in using that email to accept it. The invited person must already have or create an account. No message is sent automatically.
 
@@ -45,7 +45,13 @@ There are no NEXT_PUBLIC credentials. No Supabase/OpenAI secrets were available 
 
 ## Vercel
 
-1. Import the existing GitHub repository into Vercel. Select Next.js, repository root `.`, and Node 22.x. Deploy the branch containing the v0.2 implementation (feature/workflow-platform until it is merged).
+Current public deployment: https://financeflow-prototype-gules.vercel.app
+
+Existing project: https://vercel.com/siddhesh-19s-projects/financeflow-prototype
+
+The production branch is `main`. GitHub pushes to it trigger Vercel deployments. The app is currently deployed without Supabase/OpenAI credentials, so the public demo works and live workspace services require the configuration above.
+
+1. Import the existing GitHub repository into Vercel. Select Next.js, repository root `.`, and Node 22.x. Use the `main` branch, which now contains v0.2.
 2. Add the environment variables in Project Settings → Environment Variables, selecting the appropriate Production/Preview environments. Keep preview deployments pointed at a separate Supabase project if they will receive real private data.
 3. Deploy. The application builds without environment variables and serves Demo mode; workspace/AI features become available only after service configuration. Redeploy after changing variables.
 4. Configure the final Vercel origin in Supabase Auth as described above.

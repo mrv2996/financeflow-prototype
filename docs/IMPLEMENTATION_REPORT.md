@@ -13,6 +13,8 @@ The existing repository now contains the workflow platform described in PRODUCT_
 - Browser: follow-up proposal required explicit confirmation, wrote audit history, and left receipts at $0. Requester could not complete Procurement's stage.
 - Browser: created a custom two-stage workflow; added/reordered/deleted stages; saved draft; published; started instance; ran simulated analysis; requested changes; resubmitted; approved completion.
 - Browser: missing Supabase configuration is visible in Workspace mode and sign-in.
+- Browser: vendor workflow start, explicit cancellation, and reset passed.
+- Production HTTP checks passed locally and on Vercel: app and original prototype return 200; demo transitions and assistant return 200; unauthorized completion returns 403; cross-origin mutations are rejected locally; missing configuration is explicit.
 - Dependency audit reports zero production vulnerabilities.
 
 ## External verification limits
@@ -21,4 +23,10 @@ No Supabase project credentials or OpenAI API key were available. Real registrat
 
 ## Deployment
 
-Production build is ready. Deployment status and verified public URL will be recorded after Vercel completes.
+Deployed to Vercel from `main` (application commit `6c17f90`). Vercel reported Ready, and the production URL was verified through the browser and unauthenticated HTTP checks.
+
+- Public: https://financeflow-prototype-gules.vercel.app
+- Local production server: http://localhost:3000
+- Repository: https://github.com/siddhesh-19/financeflow-prototype
+
+The public deployment intentionally contains no configured Supabase/OpenAI secrets. Configure the variables and migration in DEPLOYMENT.md and redeploy to enable the live services. No payment or external message integrations are claimed.

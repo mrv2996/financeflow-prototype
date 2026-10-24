@@ -48,7 +48,7 @@ For new financial effects, define invariants first. Current available = received
 
 ## Verification and remaining limits
 
-The initial new suite passes engine tests and runs the migration in PGlite using mocked Supabase auth/storage tables. It checks tenant reads, denied direct writes/RPCs, atomic version conflicts, duplicate updates, and email-bound invitations. A production build succeeds. See the latest implementation report for browser/deployment verification.
+The initial new suite passes engine tests and runs the migration in PGlite using mocked Supabase auth/storage tables. It checks tenant reads, denied direct writes/RPCs, atomic version conflicts, duplicate updates, and email-bound invitations. All 16 tests and the production build pass. The app is deployed at https://financeflow-prototype-gules.vercel.app from main. See the latest implementation report for browser/deployment verification.
 
 Live Supabase registration, storage upload, cross-account behavior, and OpenAI API calls require credentials and have not been verified against configured external services. PGlite is a real PostgreSQL engine, but its auth/storage fixtures do not reproduce Supabase's full service layer.
 

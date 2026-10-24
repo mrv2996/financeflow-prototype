@@ -27,3 +27,9 @@ The owner explicitly expanded the original local-only prototype scope to real ac
 Stop the dev server, then run `npm run check` for TypeScript, workflow/PostgreSQL tests, and production build. `npm start` serves the built app. Live Supabase/Auth/Storage and OpenAI smoke tests require configured services; see the deployment checklist.
 
 Use one branch per change, preserve the workflow engine's financial and authorization controls, and update the shared docs whenever assumptions change.
+
+## Share the app
+
+[Open the public demo](https://financeflow-prototype-gules.vercel.app) · [Implementation report](docs/IMPLEMENTATION_REPORT.md)
+
+The public demo and builder work now. Real accounts, cloud storage, and AI require the service configuration in [DEPLOYMENT.md](docs/DEPLOYMENT.md).

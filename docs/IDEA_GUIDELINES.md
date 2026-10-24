@@ -1,40 +1,40 @@
-# Shared idea guidelines
+# Shared idea guidelines — FinanceFlow v0.2
 
-Read this before asking an AI to change FinanceFlow. This is the common product brief for both teammates.
+Updated 24 October 2026. This file is the shared product intent for both teammates and their AI coding tools. The original v0.1 brief is archived in archive/IDEA_GUIDELINES_v0.1.md.
 
-## The idea we are protecting
+## The idea
 
-FinanceFlow is a rapid visual prototype of a company's approximately $100,000 US marketing funding journey: request, budget review, possible external co-marketing funding, campaign plan and budget, approvals, purchase orders, invoices, funding confirmation, and marketing handoff. Campaign execution may produce events and whitepapers.
+FinanceFlow is an AI-powered financial workflow coordinator. It helps employees, managers, finance teams, and external stakeholders manage requests, approvals, documents, policy checks, and handoffs. It complements treasury infrastructure such as Round Treasury; it does not rebuild banking or payment rails.
 
-Our near-term goal is to see and discuss the entire process, discover responsibilities and ordering, and decide where automation helps. The workflow is deliberately hypothetical. Mentioning AWS as a possible co-marketing example or Round Treasury as the buildathon sponsor does not establish a real integration or verified provider process.
+The flagship scenario remains a fictional $100,000 US marketing campaign for Northstar Cloud. Responsibilities and partner funding order are hypotheses, not verified AWS or other provider policy.
 
-## Non-negotiable prototype boundaries
+## Explicitly approved scope change
 
-1. Keep it a single-page interactive experience with mocked data and local React state.
-2. Keep the full lifecycle visible and clickable; do not reduce it to a static mockup.
-3. Every visible action must work locally and have a clear result.
-4. Preserve dashboard totals, stage details, simulated agent guidance, document previews, blockers, and Reset Demo.
-5. Calculate financial figures deterministically from workflow state; do not invent amounts with AI.
-6. Label actions, balances, documents, and agent responses as simulations.
-7. Add no authentication, database, backend, API integration, environment-variable requirement, real payment, upload, or actual document generation.
-8. Reuse Next.js, React, TypeScript, and Tailwind; add dependencies only when essential to the requested UI.
-9. Keep the interface professional and light; favor clarity over charts, animation, and decoration.
-10. Prefer a small, understandable implementation over a framework for speculative future needs.
-11. Treat owners, thresholds, external funding behavior, and stage order as editable assumptions.
-12. Stop when the requested prototype change works. Do not add adjacent features without a request.
+The owner requested a functional, deployable application instead of the initial local-only prototype. The following are now in scope: UI-created workflows, reusable templates, saved instances, Supabase Auth/PostgreSQL/private Storage, custom roles, server-enforced approvals, real OpenAI reasoning and extraction, persistent history, and Vercel deployment. These replace the old prohibitions on accounts, persistence, APIs, and uploads.
 
-## Decisions versus assumptions
+Keep two visibly distinct modes. Demo mode is isolated browser data and simulated role switching. Workspace mode has real accounts and private database records. Missing service configuration must remain visible, and must never be represented as a functioning real integration.
 
-The $100,000 fictional campaign and complete visible lifecycle are the demonstration target. The current $75,000 threshold, sequential stage order, internal approval semantics, and timing of wallet funding are prototype assumptions documented in PRODUCT_SPEC.md. They are not financial, legal, or provider policy.
+## Principles that must not drift
 
-When changing an assumption, state the new assumption and update the specification. If a request explicitly changes a boundary, identify that scope change and update these guidelines rather than silently drifting. An ordinary UI or workflow refinement does not authorize live integrations or production infrastructure.
+1. Keep the complete funding lifecycle visible and usable. Preserve the original sample and light fintech design.
+2. Let users configure workflows through the UI. Use one generic sequential engine with approval, rejection, revision, and threshold conditions.
+3. The backend decides whether real workspace actions are permitted. Role and document prerequisites cannot be bypassed by a button or model output.
+4. Treat approved requests, funding receipts, allocations, commitments, and available budget as different concepts. Use deterministic integer minor-unit arithmetic.
+5. Approval is not receipt, an invoice is not payment, and a draft follow-up is not a sent message.
+6. AI may explain, extract, draft, and propose. Humans explicitly confirm material changes; the workflow engine still checks them.
+7. Scope every real data read and write to the authenticated workspace. Keep files private and credentials server-side.
+8. Keep the flagship partner process hypothetical. Do not imply real AWS, Round, Xero, or bank connectivity without an implemented authorized integration.
+9. Prioritize reliable P0 workflow, persistence, and permission behavior over optional email, Slack, or treasury integrations.
+10. Build on this repository, keep architecture straightforward, and stop when the requested outcome is verified.
 
-## How we work with AI
+## Defaults versus decisions
 
-Start a focused task on a branch. Tell the AI the exact outcome and acceptance checks. Ask it to read AGENTS.md and the documents listed there before editing. Keep changes tied to the request; preserve unrelated working behavior. After a material workflow change, check the complete funding path and reset, plus rejection or missing-document behavior when affected.
+Current defaults are sequential stages, a $75,000 CFO escalation for the marketing sample, administrators managing templates/roles, explicit person assignment where needed, and one currency per instance. The owner starts with all default business roles; administrator status alone does not override approval roles. A received-funding entry is an authorized manual record backed by reviewed evidence, not a verified bank feed.
 
-Use this prompt with any AI tool (some tools do not automatically read AGENTS.md):
+Changes to these assumptions belong in PRODUCT_SPEC.md. Explicit product scope changes should update this document and AGENTS.md. Routine feature requests do not authorize unrelated integrations or data exposure.
 
-> Work on FinanceFlow. First read AGENTS.md, docs/IDEA_GUIDELINES.md, docs/PRODUCT_SPEC.md, and docs/HANDOFF.md. This is a local mock prototype for discussing a $100,000 marketing funding lifecycle. Keep the documented scope and simulated behavior. Implement this specific change: [CHANGE]. Acceptance checks: [CHECKS]. State any changed assumptions, update the relevant docs, verify the affected flow, and stop when it works. If the request explicitly changes the agreed scope, call out that change before implementing it.
+## Prompt to use with an AI tool
 
-These files guide AI tools; they cannot guarantee that every model follows instructions. Both teammates should review diffs against the acceptance checks.
+> Work in the existing FinanceFlow repository. Read AGENTS.md, docs/IDEA_GUIDELINES.md, docs/PRODUCT_SPEC.md, docs/HANDOFF.md, and docs/DEPLOYMENT.md first. Implement this change: [CHANGE]. Preserve the marketing demo, generic engine, workspace isolation, server-side permissions, integer money calculations, evidence review, and human confirmation. Acceptance checks: [CHECKS]. Update affected docs, run relevant tests, identify any unverified external service, and stop once the change works. Do not claim a live integration is operational when it is unconfigured.
+
+These instructions reduce drift; both teammates still review code and behavior against the agreed scope.

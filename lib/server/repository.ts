@@ -1,0 +1,7 @@
+import 'server-only';
+import { context, adminClient, dbError } from './supabase';
+import { WorkflowError, transition } from '../platform/engine';
+import { Action, WorkflowInstance, instanceSchema } from '../platform/schema';
+export async function loadInstance(workspaceId:string,instanceId:string){const ctx=await context(workspaceId);const {data,error}=await ctx.client.from('workflow_instances').select('state').eq('workspace_id',workspaceId).eq('id',instanceId).single();if(error||!data)throw new WorkflowError('Workflow not found.',404);return {...ctx,instance:instanceSchema.parse(data.state)};}
+export async function persist(instance:WorkflowInstance,expected:number,actorId:string,requestId:string,proposalId?:string){const {data,error}=await adminClient().rpc('persist_workflow',{p_state:instance,p_expected:expected,p_actor:actorId,p_request:requestId,p_proposal:proposalId??null});dbError(error);return instanceSchema.parse(data);}
+export async function perform(workspaceId:string,instanceId:string,action:Action,proposalId?:string){const {actor,instance,client}=await loadInstance(workspaceId,instanceId);if(action.action==='reassign' && action.assignedUserId){const {data}=await client.from('workspace_members').select('user_id').eq('workspace_id',workspaceId).eq('user_id',action.assignedUserId).single();if(!data)throw new WorkflowError('Assignee must belong to this workspace.');}const next=transition(instance,action,actor);if(next===instance)return instance;return persist(next,instance.version,actor.id,action.requestId,proposalId);}

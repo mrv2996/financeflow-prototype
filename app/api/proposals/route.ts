@@ -1,0 +1,6 @@
+import { z } from 'zod';
+import { handle,body } from '@/lib/server/http';
+import { loadInstance,perform } from '@/lib/server/repository';
+import { WorkflowError } from '@/lib/platform/engine';
+import { Proposal } from '@/lib/platform/schema';
+export async function POST(request:Request){return handle(async()=>{const input=z.object({workspaceId:z.string().uuid(),instanceId:z.string().uuid(),proposalId:z.string().uuid(),confirmed:z.literal(true)}).parse(await body(request));const {client,instance}=await loadInstance(input.workspaceId,input.instanceId);const {data,error}=await client.from('ai_action_proposals').select('*').eq('id',input.proposalId).eq('workspace_id',input.workspaceId).eq('instance_id',input.instanceId).single();if(error||!data)throw new WorkflowError('Proposal not found.',404);const p=data.proposal as Proposal;if(data.status==='applied')return {instance};if(data.based_on_version!==instance.version)throw new WorkflowError('Workflow changed since this proposal. Ask for a new recommendation.',409);return {instance:await perform(input.workspaceId,input.instanceId,{action:p.action,stageId:p.stageId,requestId:p.id,expectedVersion:p.basedOnVersion,comment:p.comment,confirmed:true},p.id)};});}

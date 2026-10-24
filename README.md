@@ -1,26 +1,29 @@
-# FinanceFlow prototype
+# FinanceFlow
 
-Interactive, local-only mock of a $100,000 US marketing funding workflow for Northstar Cloud. All approvals, documents, insights, and balances are simulated. No account, backend, integration, or real transfer is involved.
+An AI-powered financial workflow coordinator built with Next.js, React, TypeScript, Tailwind, Supabase, and OpenAI. Configure reusable workflows through a visual builder, assign roles, review evidence, manage approvals, and track financial records. The flagship example is Northstar Cloud's fictional $100,000 US marketing campaign.
 
-## Run locally
+## Run
 
 ```bash
-npm install
+npm ci
+cp .env.example .env.local
 npm run dev
 ```
 
-Open http://localhost:3000. Run `npm run build` to verify the production build.
+Open http://localhost:3000. Demo mode works without credentials and saves isolated browser data. Workspace mode requires Supabase configuration and the migration; real AI requires an OpenAI API key. No real payments or external messages are executed.
 
-## Edit the workflow
+## Team starting point
 
-`lib/workflow.ts` contains the ordered `STAGES` array, document previews, campaign details, and the initial demo state. Add, remove, or reorder stage objects in `STAGES`; the timeline and progress use that array. Give a stage a unique `id`, and optionally a `documentId` matching a document in `DOCUMENTS`. If adding approval stages, set `kind: 'approval'`. Update `initialState()` when changing the desired opening scenario. The main interaction logic is in `components/FinanceFlow.tsx`.
+- [Product spec](docs/PRODUCT_SPEC.md)
+- [Shared idea guidelines](docs/IDEA_GUIDELINES.md)
+- [Handoff and code map](docs/HANDOFF.md)
+- [Database, environment, and Vercel setup](docs/DEPLOYMENT.md)
+- [AI contributor instructions](AGENTS.md)
 
-## Assumptions
+The owner explicitly expanded the original local-only prototype scope to real accounts, persistence, documents, and AI. Original guidelines are preserved under docs/archive. The original prototype is still available at /prototype.
 
-Finance and management review precede the fictional partner request. A purchase order is required before invoice processing. Management approval counts as approved internal funding; the simulated wallet balance becomes available once Treasury confirms funding. The wallet is not debited on handoff. The partner process is hypothetical and does not represent any actual provider's policy.
+## Validate
 
-## Team and AI starting point
+Stop the dev server, then run `npm run check` for TypeScript, workflow/PostgreSQL tests, and production build. `npm start` serves the built app. Live Supabase/Auth/Storage and OpenAI smoke tests require configured services; see the deployment checklist.
 
-Read [Shared idea guidelines](docs/IDEA_GUIDELINES.md), [Product specification](docs/PRODUCT_SPEC.md), and [Teammate handoff](docs/HANDOFF.md) before extending the demo. [AGENTS.md](AGENTS.md) gives repository-level instructions to AI coding tools. The guidelines include a reusable prompt for tools that do not load those instructions automatically.
-
-Public repository access shares the source, not a hosted demo. Clone the repository, run `npm ci`, then `npm run dev` to explore it locally. Use one branch per change and review changes against the agreed prototype scope.
+Use one branch per change, preserve the workflow engine's financial and authorization controls, and update the shared docs whenever assumptions change.

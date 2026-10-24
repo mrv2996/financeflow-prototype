@@ -1,76 +1,68 @@
-# FinanceFlow — product specification
+# FinanceFlow product specification — v0.2
 
-Version 0.1 · 24 October 2026 · Status: exploratory prototype
+24 October 2026 · Hackathon application · Built on the original prototype.
 
-## Purpose
+## Product
 
-Help a company explore the complete approval and funding lifecycle for a $100,000 US marketing campaign. The immediate goal is a working visual conversation aid for a Finance & Ops AI buildathon sponsored by Round Treasury. Success means two teammates can click through the flow, discuss responsibilities, change the sequence, and identify useful automation within a 30-minute ideation session.
+FinanceFlow coordinates financial requests and approvals across roles, documents, policy checks, and operational history. It provides an intelligence and coordination layer, not payment execution infrastructure. The original $100,000 US marketing workflow remains the flagship sample.
 
-This is a hypothetical process. No workflow in this repository claims to represent verified AWS, Round Treasury, or other provider requirements.
+## Modes
 
-## Scenario and people
+**Demo:** no account required; fictional Northstar Cloud campaign; simulated role switcher; templates, instances, messages, and reset stored in this browser under financeflow.demo.v2. Each browser's data is isolated. Demo transitions are validated by a server route but submitted demo snapshots are inherently untrusted and never become private workspace records. The demo assistant is a clearly labeled deterministic rules adapter; AI-analysis demo stages record simulated analysis.
 
-Northstar Cloud requests $100,000 for US Growth Summit 2026 (MKT-US-0426). Marketing owns campaign planning and execution; Finance reviews the budget and processes invoices; management approves spend; Partnerships handles the external request; Procurement provides a purchase order; an external partner reviews funding; Treasury confirms the simulated wallet balance.
+**Workspace:** Supabase Auth accounts with HTTP-only cookies; workspace memberships and custom role names; PostgreSQL persistence; server-validated actions; private document uploads; OpenAI chat and extraction when configured. No fallback to local storage for private records. Workspace owners can create invitation links tied to an email and expiring after seven days. No invitation email is sent automatically.
 
-These responsibilities and their ordering are assumptions for discussion, not settled business rules.
+## Workflow builder and instances
 
-## Current proposed lifecycle
+Templates have a name, description, currency (USD/GBP/EUR), requested amount, draft/published state, and up to 30 stages. Users can add, edit, delete, and reorder stages using up/down controls. Each stage defines its role, document requirements, approval requirement, optional escalation threshold and role, approval/completion outcome, rejection outcome, and optional financial record effect.
 
-| Stage | Responsible stakeholder | Required action or evidence |
-| --- | --- | --- |
-| Funding request | Marketing | Submit Marketing Funding Request |
-| Plan & budget | Marketing | Submit Marketing Plan and Campaign Budget |
-| Finance review | Finance | Explicit finance approval; produce Finance Approval |
-| Management approval | VP, Marketing | Approve campaign spend |
-| Partner funding request | Partnerships | Submit fictional co-marketing request |
-| Purchase order | Procurement | Provide Purchase Order |
-| Invoice processing | Finance | Create and process Invoice |
-| Partner approval | External partner | Approve funding; produce External Partner Approval |
-| Funding confirmed | Treasury | Record Funding Confirmation and load demo balance |
-| Marketing handoff | Marketing | Accept the funded budget and campaign deliverables |
+Stage types: task, approval, document submission, financial verification, AI analysis, conditional decision, notification, completion. All use the same sequential engine. Conditional decisions require approval above their threshold; below it the assigned role can complete. Above-threshold escalation also applies to other configured stage types. Rejection either blocks for revision or cancels, according to the template. Early completion cannot skip later financial or approval controls. Notifications are internal tasks; there is no external sending adapter.
 
-The original idea left the position of the external funding request, planning, and management review open. The current sequence is one editable interpretation.
+Starting an instance freezes its template. Later template edits affect future instances only. State includes current stage, execution statuses, assigned person, decisions, documents, blockers, timestamps, financial amounts, version, and audit history.
 
-## Required experience
+## Permissions and transitions
 
-- A professional fintech dashboard with sidebar, funding totals, pending approvals, current stage, and attention tasks.
-- A complete clickable lifecycle with Completed, In Progress, Pending, and Blocked states. Details show owner, required action/document, and approval decision.
-- Local actions for approval, rejection, change requests, mock document creation, completion, and progression. Every visible action has a meaningful effect.
-- A simulated finance agent using deterministic conditional messages and suggested actions. It highlights approval thresholds, missing evidence, partner approval, and handoff readiness.
-- A document centre with plausible previews for the eight named documents. Planned documents are distinguished from the deliberately missing PO.
-- Reset Demo restores the opening scenario. Refresh also resets state because the prototype has no persistence.
+Roles come from the authenticated workspace membership. Completing, approving, rejecting, reviewing evidence, and running extraction require the stage's effective role and assigned person, if one is set. Requesters can submit revisions, upload evidence, and record follow-ups. Administrators manage templates, roles, reassignment, and cancellation; being an administrator alone does not override approval roles. New owners receive all default business roles for initial use.
 
-## Financial and state rules
+Supported operations: start, submit/resubmit, approve, reject, request changes, reassign, complete, cancel, add/review documents, record analysis, record follow-up draft. Rejected stages cannot advance until resubmitted. Required documents must be reviewed. Extracted fields require a separate human review. Wrong currency or mismatched invoice/PO/confirmation amounts block completion. Uploading a replacement of the same type makes earlier evidence unverified.
 
-Requested funding is $100,000. Internal approved funding becomes $100,000 after management approval. Available balance becomes $100,000 only after Treasury confirms funding. Handoff does not spend or debit that balance. Pending approvals count unfinished approval stages, including future ones. The demo finance threshold is $75,000.
+Workspace writes use optimistic version checks, an atomic PostgreSQL function, and request IDs to prevent duplicate application. Audit and approval rows are written in the same transaction. Direct authenticated client writes to the workflow tables are not granted.
 
-The first two stages begin complete; finance review is active; later stages are pending. Completing a stage activates the next stage. A missing required document blocks completion. Rejection or a change request blocks an approval until resubmission or a later approval. Approval creates its corresponding mock approval document.
+## Financial model
 
-Amounts and counts are calculated from state; simulated AI messages never calculate or mutate money independently of workflow actions.
+All amounts are integer cents/pence; maximum supported request is 10 billion major units. No exchange-rate conversion exists. Dashboard aggregation is separated by currency.
 
-## Scope boundaries
+- Requested: amount configured for the instance's frozen template.
+- Approved: authorized budget recorded by an approval or verification stage.
+- Received: authorized receipt record, bounded by approved funding and requiring reviewed Funding Confirmation evidence.
+- Allocated: budget earmarked for execution, bounded by approved and received funding.
+- Committed: cumulative expenditure commitments, bounded by allocation and receipt.
+- Available: received minus committed. Allocation is shown separately and is not treated as spending.
 
-Use Next.js, React, TypeScript, Tailwind, hardcoded mock data, and local React state. Keep the architecture easy to edit. No login, database, backend service, external API, environment variable, real upload, real document generation, or payment processing. No AWS, Stripe, Xero, Round, or other live integrations. Essential UI packages only.
+Follow-ups, invoice creation, AI extraction, and approvals do not imply money was received. No bank connection or real transfer exists.
 
-Use a white or light background, clear typography, generous spacing, color-coded status, and modest transitions. Avoid decorative charts, excessive animation, and unrelated features. Label simulated balances and actions clearly.
+## Flagship scenario
 
-## Acceptance walkthrough
+Funding Request → Plan & Budget → Finance Review (CFO above $75,000) → Management Approval → Partner Request → PO Verification → Invoice Verification → Partner Approval → Funding Confirmation → Marketing Handoff.
 
-1. Open the app and see $100,000 requested, $0 approved, $0 available, two completed stages, and finance review active.
-2. Request changes or reject an approval and see it become blocked; resubmit and approve to continue.
-3. Approve Finance and management; approved funding becomes $100,000.
-4. Complete the partner request; attempt to finish the missing PO stage and see a blocker.
-5. Create the mock PO, preview it, and complete the stage. Create and process the invoice.
-6. Approve partner funding, create the confirmation, and confirm demo funding; available balance becomes $100,000.
-7. Complete marketing handoff; all ten stages are complete and no approval remains pending.
-8. Inspect document previews and contextual agent messages, then reset to the initial state.
+The opening demo has completed internal review and the partner request. It records $100,000 internally approved, $0 received, and a blocked PO verification stage. Its history includes a fictional policy and prior decisions. The remaining documents can be added as fictional samples and reviewed. Funding confirmation records receipt only after evidence review and explicit confirmation. Marketing handoff allocates the received budget.
 
-## Questions for later validation
+A second Vendor Payment Preparation template exercises the same engine. It ends with preparation; it never claims to pay a vendor.
 
-- Who owns each real approval, and which approvals can run concurrently?
-- Does external funding reimburse spend or arrive before spend?
-- Is the partner funding the whole request or only part of it?
-- What PO/invoice relationships, currencies, tax, and evidence requirements are actually needed?
-- Which actions should AI recommend, prepare for review, or execute after explicit authorization?
+## AI
 
-Do not implement answers until the team chooses them. Changes to the idea must update this specification and the shared guidelines.
+Signed-in workspace users can ask questions against authorized workflow snapshots, recent audit history, document text/extractions, policy configuration, and previous messages. A bounded Responses API tool loop exposes get_workflow_details, get_workflow_history, get_stage_requirements, get_financial_context, read_document, check_approval_policy, draft_approval_request, and propose_workflow_action. Tools are read-only. The final output is schema-validated and evidence IDs are restricted to existing records.
+
+Proposals are saved with the workflow version and require explicit human confirmation. The server reloads the proposal and applies it through normal permission, prerequisite, idempotency, and version checks. A follow-up is an internal draft, never an external message. AI history is persisted. AI calls are limited to 12 per user per minute in PostgreSQL.
+
+## Documents
+
+Authenticated workspace members can attach PDF, CSV, and XLSX files up to 4 MB to the active stage. Files are stored privately. Authorized previews use 60-second signed URLs; CSV text and extracted fields are also visible in the app. XLSX/PDF originals open/download from the private file link.
+
+Users explicitly request OpenAI extraction, which sends the chosen file to the configured OpenAI project. Fields include type, issuer, total in minor units, currency, dates, PO/invoice number, company, payment terms, and warnings. Extraction never updates financial totals. Users must review the source evidence and extracted values. AI field extraction may miss content or misread amounts; replace/correct source evidence when discrepancies are found.
+
+## Acceptance and limits
+
+Run the complete marketing and vendor flows; exercise rejection/resubmission, missing/unreviewed documents, wrong role, person assignment, threshold escalation, wrong tenant, stale versions, duplicate request IDs, money arithmetic, and reset. Verify template editing does not mutate active instances. Check persistence across refresh and RLS in separate accounts/workspaces.
+
+Live Auth, Storage, and OpenAI acceptance tests require configured services. SQL tests with PGlite verify migrations and RLS but do not prove external service setup. No email, Slack, Xero, bank feed, Round MCP, real payment execution, multi-currency conversion, arbitrary BPMN branching, background automation, or full accounting ledger is in this version.

@@ -1,0 +1,3 @@
+import { NextResponse } from 'next/server';
+import { configuration, userClient } from '@/lib/server/supabase';
+export async function GET(request:Request){const url=new URL(request.url);if(!configuration().workspace)return NextResponse.redirect(new URL('/?auth_error=confirmation',url.origin));const code=url.searchParams.get('code');const hash=url.searchParams.get('token_hash');const client=await userClient();let error:unknown='Missing confirmation token';if(code)({error}=await client.auth.exchangeCodeForSession(code));else if(hash)({error}=await client.auth.verifyOtp({token_hash:hash,type:'email'}));return NextResponse.redirect(new URL(error?'/?auth_error=confirmation':'/?workspace=1',url.origin));}

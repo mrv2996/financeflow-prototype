@@ -1,2 +1,2 @@
-import FinanceFlow from '@/components/FinanceFlow';
-export default function Home() { return <FinanceFlow />; }
+import Platform from '@/components/platform/Platform';
+export default function Home(){return <Platform/>;}

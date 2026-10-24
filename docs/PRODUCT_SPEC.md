@@ -1,4 +1,4 @@
-# FinanceFlow product specification — v0.2
+# FinanceFlow product specification — v0.3
 
 24 October 2026 · Hackathon application · Built on the original prototype.
 
@@ -14,9 +14,13 @@ FinanceFlow coordinates financial requests and approvals across roles, documents
 
 ## Workflow builder and instances
 
-Templates have a name, description, currency (USD/GBP/EUR), requested amount, draft/published state, and up to 30 stages. Users can add, edit, delete, and reorder stages using up/down controls. Each stage defines its role, document requirements, approval requirement, optional escalation threshold and role, approval/completion outcome, rejection outcome, and optional financial record effect.
+Templates have a name, description, currency (USD/GBP/EUR), requested amount, draft/published state, and up to 30 executable nodes. The full-screen React Flow canvas provides Start, Task, Approval, AI Agent, Document, Condition and End nodes, draggable positions, output connections, zoom, pan, minimap, automatic layout, duplicate/delete, and a node inspector for instructions, roles, evidence, escalation and financial policy. Start and End are unique boundaries. The original verification/notification/completion stage types remain supported in existing templates.
 
-Stage types: task, approval, document submission, financial verification, AI analysis, conditional decision, notification, completion. All use the same sequential engine. Conditional decisions require approval above their threshold; below it the assigned role can complete. Above-threshold escalation also applies to other configured stage types. Rejection either blocks for revision or cancels, according to the template. Early completion cannot skip later financial or approval controls. Notifications are internal tasks; there is no external sending adapter.
+A template's optional `graph` stores node positions and outcome edges inside its existing PostgreSQL JSON definition. Starting an instance freezes that graph too. Legacy templates without a graph keep sequential execution; opening them in the canvas maps their existing outcomes to edges. Linear steps can be reordered with arrows; branched workflows are reordered by reconnecting their outputs.
+
+Success follows the connected edge. Condition nodes branch above versus at/below the requested-amount threshold; above-threshold completion still requires the escalated role's explicit approval. Rejection can return to the same approval for resubmission, travel through revision tasks and return to the rejected approval, or cancel at End. Returning to a rejected approval requires resubmission before approval. Request changes retains the existing blocked-stage behavior. AI Agent nodes require analysis and explicit completion; they do not run autonomous tools.
+
+Publishing rejects incomplete outputs, missing or duplicate nodes, multiple edges on one output, forward cycles, unreachable nodes and successful paths that bypass required approvals, evidence, analysis or financial controls. A rejection branch must return to its approval before any End and cannot repeat financial effects. Drafts may have disconnected nodes. Edges define execution; canvas position does not. Every transition still applies the existing membership, role/person, evidence, human confirmation, money, idempotency and version checks. Graphs run one active node at a time; parallel fan-out and arbitrary cycles are not supported.
 
 Starting an instance freezes its template. Later template edits affect future instances only. State includes current stage, execution statuses, assigned person, decisions, documents, blockers, timestamps, financial amounts, version, and audit history.
 
@@ -65,4 +69,4 @@ Users explicitly request OpenAI extraction, which sends the chosen file to the c
 
 Run the complete marketing and vendor flows; exercise rejection/resubmission, missing/unreviewed documents, wrong role, person assignment, threshold escalation, wrong tenant, stale versions, duplicate request IDs, money arithmetic, and reset. Verify template editing does not mutate active instances. Check persistence across refresh and RLS in separate accounts/workspaces.
 
-Live Auth, Storage, and OpenAI acceptance tests require configured services. SQL tests with PGlite verify migrations and RLS but do not prove external service setup. No email, Slack, Xero, bank feed, Round MCP, real payment execution, multi-currency conversion, arbitrary BPMN branching, background automation, or full accounting ledger is in this version.
+Live Auth, Storage, and OpenAI acceptance tests require configured services. SQL tests with PGlite verify migrations and RLS but do not prove external service setup. No email, Slack, Xero, bank feed, Round MCP, real payment execution, multi-currency conversion, parallel BPMN execution, background automation, or full accounting ledger is in this version.

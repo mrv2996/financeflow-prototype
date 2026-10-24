@@ -1,12 +1,12 @@
-# FinanceFlow teammate handoff — v0.2
+# FinanceFlow teammate handoff — v0.3
 
 Updated 24 October 2026. This extends the existing application. Read IDEA_GUIDELINES.md, PRODUCT_SPEC.md, and DEPLOYMENT.md before changing it. The original demo is preserved at /prototype.
 
 ## Current implementation
 
 - Modern dashboard with active instances, blocked stages, approval counts, and summaries grouped by currency.
-- Visual template builder: stage types, order, roles, required evidence, thresholds, approval/rejection outcomes, financial effects, drafts and publishing.
-- Generic server-validated sequential engine, immutable instance template snapshots, revisions, role/person checks, cancellation, reassignment, audit history, optimistic locking and idempotency.
+- React Flow canvas: seven node types, drag/drop, connections, positions, zoom/pan/minimap, inspector, reorder, duplicate/delete, thresholds, approval/rejection paths, financial effects, drafts and publishing.
+- Generic server-validated sequential/graph engine, immutable instance template snapshots, revisions, role/person checks, cancellation, reassignment, audit history, optimistic locking and idempotency.
 - Public demo adapter with isolated browser persistence and explicitly simulated roles/assistant.
 - Supabase email auth through HTTP-only cookies, private workspaces, email-bound invitation links, role management, RLS-scoped reads, atomic server-only writes, and private storage.
 - Real OpenAI Responses adapter with bounded read tools, structured evidence-linked answers, stored messages/proposals, confirmation through the engine, and per-user quotas.
@@ -14,7 +14,9 @@ Updated 24 October 2026. This extends the existing application. Read IDEA_GUIDEL
 
 ## Configuration status
 
-The application can run and build without credentials. Real accounts, database persistence, private file storage, and real AI require the environment variables and migration in DEPLOYMENT.md. Their live behavior must be smoke-tested once configured. Unconfigured services show explicit errors; no fake backend success is substituted.
+Supabase project `mhlcadlwrjsjelzawpwh` (FinanceFlow, eu-west-1) is configured. The existing migration is applied; email/password and email confirmation are enabled; exact production/local confirmation redirects are configured. Credentials are in ignored `.env.local` and encrypted Production environment variables in the existing Vercel project. The server service variable accepts the existing modern secret API key. Nothing is exposed through NEXT_PUBLIC variables.
+
+Live smoke tests pass for real accounts confirmed through generated signup tokens, sign-in, workspace creation, graph persistence, transitions, private storage, RLS, roles, retries and version conflicts. SMTP/email delivery is not tested and requires the owner's mail-provider configuration for unrestricted public registration. OpenAI remains unconfigured. See IMPLEMENTATION_REPORT.md for current deployment verification.
 
 ## Code map
 
@@ -24,6 +26,7 @@ The application can run and build without credentials. Real accounts, database p
 | components/platform/WorkflowBuilder.tsx | Visual template editor |
 | components/platform/Assistant.tsx | Chat, evidence references, proposal confirmation entry point |
 | lib/platform/schema.ts | Zod domain and action schemas |
+| lib/platform/graph.ts | Graph generation, layout and published-path/control validation |
 | lib/platform/engine.ts | Deterministic transitions, role checks, blockers and financial rules |
 | lib/platform/seed.ts | Marketing/vendor templates and fictional seeded demo |
 | lib/platform/assistant.ts | Explicit demo-only rules adapter |
@@ -48,11 +51,9 @@ For new financial effects, define invariants first. Current available = received
 
 ## Verification and remaining limits
 
-The initial new suite passes engine tests and runs the migration in PGlite using mocked Supabase auth/storage tables. It checks tenant reads, denied direct writes/RPCs, atomic version conflicts, duplicate updates, and email-bound invitations. All 16 tests and the production build pass. The app is deployed at https://financeflow-prototype-gules.vercel.app from main. See the latest implementation report for browser/deployment verification.
+The automated suite now has 23 passing tests, including graph execution and graph JSON persistence under tenant RLS. `npm run test:live` explicitly creates two synthetic accounts and workspace fixtures against configured Supabase, exercises the local app (override `SMOKE_ORIGIN` for production), and cleans up only its own records. It uses generated signup tokens without sending email. Run the app before this optional suite.
 
-Live Supabase registration, storage upload, cross-account behavior, and OpenAI API calls require credentials and have not been verified against configured external services. PGlite is a real PostgreSQL engine, but its auth/storage fixtures do not reproduce Supabase's full service layer.
-
-No external email/message delivery, payment processing, bank balances, Xero/Slack/Round integration, arbitrary graph engine, conversion rates, automated background jobs, or real financial reconciliation is implemented. Uploaded PDF/XLSX files open through private links; the in-app preview shows metadata, CSV text, and extraction fields. Extraction is limited to the active stage; completed evidence stays readable. Demo AI uses rules even if a server OpenAI key exists; authenticated workspace mode uses real AI to prevent anonymous API spending.
+The canvas supports success, threshold, rejection-to-revision and rejection-to-cancel routes. Required controls cannot be bypassed, forward cycles and parallel fan-out are rejected, and revision loops cannot repeat financial effects. Existing running instances retain their frozen legacy templates. No Gmail, Slack, Xero, external sending, bank feed or payment integration was added. OpenAI and production SMTP remain external configuration.
 
 ## Local commands
 

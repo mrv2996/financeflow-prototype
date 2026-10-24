@@ -18,3 +18,15 @@ button:focus-visible { outline: 2px solid #387c65; outline-offset: 3px; }
   .muted { @apply text-xs leading-5 text-slate-500; }
   .pill { @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold; }
 }
+
+/* Canvas editor extends the existing light finance workspace. */
+.ff-builder .react-flow { background: #f7faf8; }
+.ff-node { width: 230px; padding: 16px; border: 1px solid #dde5e1; border-top: 3px solid; border-radius: 14px; background: white; box-shadow: 0 3px 10px #183d2d08; transition: box-shadow .15s; }
+.ff-node-selected { box-shadow: 0 0 0 2px #2b715b, 0 8px 24px #183d2d16; }
+.ff-node .react-flow__handle { width: 10px; height: 10px; border: 2px solid white; }
+.ff-port-label { position: absolute; right: 11px; top: -4px; color: #8a9891; background: white; font-size: 8px; white-space: nowrap; padding: 0 2px; opacity: 0; }
+.ff-node:hover .ff-port-label, .ff-node-selected .ff-port-label { opacity: 1; }
+.ff-builder .react-flow__controls { box-shadow: 0 2px 8px #183d2d10; border: 1px solid #e2e8e4; border-radius: 8px; overflow: hidden; }
+.ff-builder .react-flow__minimap { border: 1px solid #e2e8e4; border-radius: 10px; overflow: hidden; }
+@media(max-width: 900px) { .ff-palette { width: 72px; padding: 8px; } .ff-palette p,.ff-palette button>span:nth-child(2),.ff-palette button>svg,.ff-palette>div { display: none; } .ff-inspector { width: 270px; } }
+@media(max-width: 600px) { .ff-inspector { position:absolute;right:0;top:115px;bottom:34px;z-index:10;box-shadow:-6px 0 25px #183d2d12; } }

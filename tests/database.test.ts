@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { PGlite } from '@electric-sql/pglite';
 import { createInstance,transition } from '../lib/platform/engine';
+import { sequentialGraph } from '../lib/platform/graph';
 import { marketingTemplate } from '../lib/platform/seed';
 const a='20000000-0000-4000-8000-000000000001',b='20000000-0000-4000-8000-000000000002';
 test('PostgreSQL migration, tenant RLS, server-only writes, atomic versions, idempotency and invitation binding',async()=>{
@@ -15,7 +16,8 @@ test('PostgreSQL migration, tenant RLS, server-only writes, atomic versions, ide
  await db.exec(await readFile('supabase/migrations/202610240001_financeflow.sql','utf8'));
  const workspace=async(user:string,email:string)=>{const r=await db.query<{id:string}>("select public.create_workspace('Test',$1,$2,array['Requester','Finance Reviewer']) as id",[user,email]);return r.rows[0].id;};
  const wa=await workspace(a,'a@example.com'),wb=await workspace(b,'b@example.com');
- const template=marketingTemplate();await db.query('select public.save_workflow_template($1,$2,$3::jsonb)',[wa,a,JSON.stringify(template)]);
+ const template=marketingTemplate();template.graph=sequentialGraph(template.stages);await db.query('select public.save_workflow_template($1,$2,$3::jsonb)',[wa,a,JSON.stringify(template)]);
+ assert.deepEqual((await db.query<{definition:typeof template}>('select definition from workflow_templates where id=$1',[template.id])).rows[0].definition.graph,template.graph);
  const actor={id:a,name:'a@example.com',workspaceId:wa,roles:['Requester','Finance Reviewer'],admin:true};let state=createInstance(template,actor);
  await db.query('select public.persist_workflow($1::jsonb,-1,$2,$3,null)',[JSON.stringify(state),a,state.history[0].requestId]);
  const privatePath=`${wa}/${state.id}/private.pdf`;

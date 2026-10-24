@@ -41,7 +41,7 @@ npm start
 | OPENAI_API_KEY | Real assistant and extraction | Secret for the desired OpenAI API project; billing/access must be active |
 | OPENAI_MODEL | Optional model override | Default gpt-4.1-mini; use a compatible Responses model available to your API project |
 
-There are no NEXT_PUBLIC credentials. No Supabase/OpenAI secrets were available during implementation. Do not paste secret values into issue comments, commits, or public AI transcripts.
+There are no NEXT_PUBLIC credentials. Supabase is now configured for FinanceFlow project `mhlcadlwrjsjelzawpwh` (eu-west-1), using the existing migration. The modern Supabase secret API key is accepted in SUPABASE_SERVICE_ROLE_KEY. OpenAI remains unconfigured. Do not paste secret values into issue comments, commits, or public AI transcripts.
 
 ## Vercel
 
@@ -49,7 +49,7 @@ Current public deployment: https://financeflow-prototype-gules.vercel.app
 
 Existing project: https://vercel.com/siddhesh-19s-projects/financeflow-prototype
 
-The production branch is `main`. GitHub pushes to it trigger Vercel deployments. The app is currently deployed without Supabase/OpenAI credentials, so the public demo works and live workspace services require the configuration above.
+The production branch is `main`. GitHub pushes to it trigger Vercel deployments. Supabase Production secrets have been configured in this project. OpenAI is not configured. Preview deployments intentionally have no production database credentials.
 
 1. Import the existing GitHub repository into Vercel. Select Next.js, repository root `.`, and Node 22.x. Use the `main` branch, which now contains v0.2.
 2. Add the environment variables in Project Settings → Environment Variables, selecting the appropriate Production/Preview environments. Keep preview deployments pointed at a separate Supabase project if they will receive real private data.
@@ -72,3 +72,11 @@ The production branch is `main`. GitHub pushes to it trigger Vercel deployments.
 Uploads are capped at 4 MB for Vercel request limits. The AI loop is bounded and rate-limited per authenticated user; OpenAI spend limits should also be set in the API project. Supabase and OpenAI quotas, email delivery, and billing are external configuration. No background job, local disk persistence, real treasury integration, or external sending service is used.
 
 Documentation references: [Supabase server auth](https://supabase.com/docs/guides/auth/server-side/creating-a-client), [Storage access control](https://supabase.com/docs/guides/storage/security/access-control), [OpenAI function calling](https://developers.openai.com/api/docs/guides/function-calling), [structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs), and [file inputs](https://developers.openai.com/api/docs/guides/file-inputs).
+
+## 24 October activation verification
+
+The migration was executed successfully against FinanceFlow, including tenant SELECT policies, server-only write grants/RPCs and the private 4 MB document bucket. Site URL is the production origin; only exact localhost and production `/auth/confirm` redirects are allowed. Email/password and email confirmation remain enabled.
+
+`npm run test:live` runs opt-in real-service tests against the app at localhost:3000; use `SMOKE_ORIGIN=https://financeflow-prototype-gules.vercel.app npm run test:live` to target production. It creates temporary synthetic accounts using generated signup confirmation tokens, checks cloud persistence and isolation, then removes its own fixtures. It does not send verification emails. Configure custom SMTP in Supabase Authentication → Emails for reliable public signup delivery; the built-in mail service has recipient/rate restrictions. Never disable email confirmation just to bypass a mail-delivery issue.
+
+Graphs are stored in the existing `workflow_templates.definition.graph` JSON and frozen in `workflow_instances.state.template.graph`; no second graph migration or permissive client write policy is needed.

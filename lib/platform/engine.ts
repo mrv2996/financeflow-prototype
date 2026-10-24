@@ -1,3 +1,4 @@
+import { graphTarget } from './graph';
 import { Action, Actor, Stage, Template, WorkflowInstance, templateSchema } from './schema';
 export class WorkflowError extends Error { constructor(message:string, public status=400) { super(message); } }
 export function assertTenant(actor:Actor, workspaceId:string) { if(actor.workspaceId !== workspaceId) throw new WorkflowError('This record belongs to another workspace.',403); }
@@ -20,7 +21,9 @@ export function stageBlockers(instance:WorkflowInstance, stage:Stage):string[] {
 export function createInstance(template:Template, actor:Actor, name=template.name, at=new Date().toISOString()):WorkflowInstance {
  template=templateSchema.parse(template); if(!template.published) throw new WorkflowError('Publish the template before starting an instance.');
  const requestId=crypto.randomUUID();
- return {id:crypto.randomUUID(),workspaceId:actor.workspaceId,name,template:structuredClone(template),status:'active',currentStageId:template.stages[0].id,version:0,currency:template.currency,finance:{requested:template.amountMinor,approved:0,received:0,allocated:0,committed:0},executions:template.stages.map((s,i)=>({stageId:s.id,status:i===0?'active':'pending',assignedUserId:null,decision:requiresApproval(s,template.amountMinor)?'pending':'none',blocker:null,startedAt:i===0?at:null,completedAt:null})),documents:[],history:[{id:crypto.randomUUID(),at,actorId:actor.id,actorName:actor.name,stageId:null,action:'start',comment:'Workflow started from a published template.',requestId}],createdAt:at,updatedAt:at};
+ const startId=template.graph?graphTarget(template,template.graph.nodes.find(n=>n.kind==='start')!.id,'success'):template.stages[0].id;
+ if(!startId || !template.stages.some(s=>s.id===startId))throw new WorkflowError('Start must connect to an executable stage.');
+ return {id:crypto.randomUUID(),workspaceId:actor.workspaceId,name,template:structuredClone(template),status:'active',currentStageId:startId,version:0,currency:template.currency,finance:{requested:template.amountMinor,approved:0,received:0,allocated:0,committed:0},executions:template.stages.map((s,i)=>({stageId:s.id,status:s.id===startId?'active':'pending',assignedUserId:null,decision:requiresApproval(s,template.amountMinor)?'pending':'none',blocker:null,startedAt:s.id===startId?at:null,completedAt:null})),documents:[],history:[{id:crypto.randomUUID(),at,actorId:actor.id,actorName:actor.name,stageId:null,action:'start',comment:'Workflow started from a published template.',requestId}],createdAt:at,updatedAt:at};
 }
 export function transition(input:WorkflowInstance, action:Action, actor:Actor, at=new Date().toISOString()):WorkflowInstance {
  assertTenant(actor,input.workspaceId);
@@ -63,7 +66,13 @@ export function transition(input:WorkflowInstance, action:Action, actor:Actor, a
  } else if(action.action==='reject' || action.action==='request_changes') {
   if(!requiresApproval(stage,input.finance.requested)) throw new WorkflowError('This stage is not an approval.');
   execution.status='blocked'; execution.decision=action.action==='reject'?'rejected':'changes_requested';execution.blocker=action.comment;
-  if(action.action==='reject' && stage.onReject==='cancel') next.status='cancelled';
+  if(action.action==='reject') {
+   const target=graphTarget(next.template,stage.id,'reject');
+   if(target && target!==stage.id){
+    if(next.template.graph?.nodes.find(n=>n.id===target)?.kind==='end')next.status='cancelled';
+    else {next.currentStageId=target;const e=next.executions.find(e=>e.stageId===target)!;e.status='active';e.completedAt=null;e.startedAt=at;e.blocker=null;e.decision=requiresApproval(next.template.stages.find(s=>s.id===target)!,next.finance.requested)?'pending':'none';}
+   } else if(!target && stage.onReject==='cancel')next.status='cancelled';
+  }
  } else {
   if(execution.decision==='rejected'||execution.decision==='changes_requested') throw new WorkflowError('Resubmit the revised stage before approval.',409);
   const approval=requiresApproval(stage,input.finance.requested);
@@ -79,9 +88,12 @@ export function transition(input:WorkflowInstance, action:Action, actor:Actor, a
    if(stage.financialEffect==='allocate') {if(amount<next.finance.committed) throw new WorkflowError('Allocation cannot be reduced below commitments.');if(amount>next.finance.received || amount>next.finance.approved) throw new WorkflowError('Allocation exceeds received or approved funding.'); next.finance.allocated=amount;}
    if(stage.financialEffect==='commit') { if(next.finance.committed+amount>next.finance.allocated || next.finance.committed+amount>next.finance.received) throw new WorkflowError('Commitment exceeds allocated or received funding.'); next.finance.committed+=amount; }
    execution.status='completed';execution.decision=approval?'approved':'none';execution.blocker=null;execution.completedAt=at;
-   const index=next.template.stages.findIndex(s=>s.id===stage.id); const following=next.template.stages[index+1];
-   if(!following || stage.onApprove==='finish') {next.status='completed'; next.currentStageId=null; for(const e of next.executions) if(e.status==='pending') e.status='skipped';}
-   else {next.currentStageId=following.id;const e=next.executions[index+1];e.status='active';e.startedAt=at;}
+   const index=next.template.stages.findIndex(s=>s.id===stage.id);
+   const outcome=stage.type==='conditional'?(next.finance.requested>stage.thresholdMinor!?'above':'below'):'success';
+   const target=graphTarget(next.template,stage.id,outcome);
+   const following=next.template.graph?next.template.stages.find(s=>s.id===target):next.template.stages[index+1];
+   if(!following || (!next.template.graph && stage.onApprove==='finish')) {next.status='completed'; next.currentStageId=null; for(const e of next.executions) if(e.status==='pending') e.status='skipped';}
+   else {next.currentStageId=following.id;const e=next.executions.find(e=>e.stageId===following.id)!;e.status=e.decision==='rejected'||e.decision==='changes_requested'?'blocked':'active';e.startedAt=at;e.completedAt=null;}
   }
  }
  next.version++;next.updatedAt=at;

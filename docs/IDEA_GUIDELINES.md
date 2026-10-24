@@ -17,7 +17,7 @@ Keep two visibly distinct modes. Demo mode is isolated browser data and simulate
 ## Principles that must not drift
 
 1. Keep the complete funding lifecycle visible and usable. Preserve the original sample and light fintech design.
-2. Let users configure workflows through the UI. Use one generic sequential engine with approval, rejection, revision, and threshold conditions.
+2. Let users configure workflows through the UI. Use the existing generic engine with validated canvas transitions, approval, rejection, revision, and threshold conditions.
 3. The backend decides whether real workspace actions are permitted. Role and document prerequisites cannot be bypassed by a button or model output.
 4. Treat approved requests, funding receipts, allocations, commitments, and available budget as different concepts. Use deterministic integer minor-unit arithmetic.
 5. Approval is not receipt, an invoice is not payment, and a draft follow-up is not a sent message.
@@ -29,7 +29,7 @@ Keep two visibly distinct modes. Demo mode is isolated browser data and simulate
 
 ## Defaults versus decisions
 
-Current defaults are sequential stages, a $75,000 CFO escalation for the marketing sample, administrators managing templates/roles, explicit person assignment where needed, and one currency per instance. The owner starts with all default business roles; administrator status alone does not override approval roles. A received-funding entry is an authorized manual record backed by reviewed evidence, not a verified bank feed.
+Current defaults are a sequential starter path editable on the visual canvas, a $75,000 CFO escalation for the marketing sample, administrators managing templates/roles, explicit person assignment where needed, and one currency per instance. The owner starts with all default business roles; administrator status alone does not override approval roles. A received-funding entry is an authorized manual record backed by reviewed evidence, not a verified bank feed.
 
 Changes to these assumptions belong in PRODUCT_SPEC.md. Explicit product scope changes should update this document and AGENTS.md. Routine feature requests do not authorize unrelated integrations or data exposure.
 

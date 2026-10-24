@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { graphIssues } from './graph';
 
 export const DEFAULT_ROLES = ['Requester', 'Finance Reviewer', 'Department Manager', 'CFO / Senior Approver', 'External Partner', 'Procurement', 'Treasury', 'Marketing'];
 export const STAGE_TYPES = ['task', 'approval', 'document', 'financial_verification', 'ai_analysis', 'conditional', 'notification', 'completion'] as const;
@@ -14,18 +15,23 @@ export const stageSchema = z.object({
   financialEffect: z.enum(['none', 'approve_budget', 'confirm_receipt', 'allocate', 'commit']),
   effectMinor: minor.nullable(),
 }).strict();
+export const graphSchema = z.object({
+  nodes:z.array(z.object({id,kind:z.enum(['start','stage','end']),position:z.object({x:z.number().finite().min(-100000).max(100000),y:z.number().finite().min(-100000).max(100000)}).strict()}).strict()).min(3).max(32),
+  edges:z.array(z.object({id,source:id,target:id,outcome:z.enum(['success','reject','above','below'])}).strict()).max(100),
+}).strict();
 export const templateSchema = z.object({
   id: z.string().uuid(), name: z.string().trim().min(1).max(140), description: z.string().max(2000),
   currency: z.enum(['USD', 'GBP', 'EUR']), amountMinor: minor, published: z.boolean(),
-  stages: z.array(stageSchema).min(1).max(30),
+  stages: z.array(stageSchema).min(1).max(30), graph:graphSchema.optional(),
 }).strict().superRefine((t, ctx) => {
+  if(t.graph) for(const message of graphIssues(t.stages,t.graph,t.published))ctx.addIssue({code:'custom',path:['graph'],message});
   if (new Set(t.stages.map(s => s.id)).size !== t.stages.length) ctx.addIssue({code:'custom', message:'Stage IDs must be unique'});
   for (const [i, s] of t.stages.entries()) {
     if ((s.type === 'conditional' || s.thresholdMinor !== null) && !s.thresholdRole.trim()) ctx.addIssue({code:'custom', path:['stages',i,'thresholdRole'], message:'A threshold approval role is required'});
     if (s.type === 'conditional' && s.thresholdMinor === null) ctx.addIssue({code:'custom', path:['stages',i,'thresholdMinor'], message:'Conditional stages need a threshold'});
     if (s.financialEffect !== 'none' && s.type !== 'financial_verification' && s.type !== 'approval') ctx.addIssue({code:'custom', path:['stages',i], message:'Financial effects require an approval or financial verification stage'});
     if (s.financialEffect === 'confirm_receipt' && !s.requiredDocuments.includes('Funding Confirmation')) ctx.addIssue({code:'custom', path:['stages',i], message:'Receipt confirmation requires a Funding Confirmation document'});
-    if (s.onApprove === 'finish' && t.stages.slice(i+1).some(x => x.approvalRequired || x.type === 'approval' || x.thresholdMinor !== null || x.financialEffect !== 'none')) ctx.addIssue({code:'custom', path:['stages',i,'onApprove'], message:'Cannot finish before a later financial or approval control'});
+    if (!t.graph && s.onApprove === 'finish' && t.stages.slice(i+1).some(x => x.approvalRequired || x.type === 'approval' || x.thresholdMinor !== null || x.financialEffect !== 'none')) ctx.addIssue({code:'custom', path:['stages',i,'onApprove'], message:'Cannot finish before a later financial or approval control'});
   }
 });
 export const extractionSchema = z.object({ documentType:z.string(), issuer:z.string().nullable(), amountMinor:minor.nullable(), currency:z.enum(['USD','GBP','EUR']).nullable(), date:z.string().nullable(), purchaseOrderNumber:z.string().nullable(), invoiceNumber:z.string().nullable(), company:z.string().nullable(), paymentTerms:z.string().nullable(), warnings:z.array(z.string()).max(20) });
